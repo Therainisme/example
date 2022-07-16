@@ -94,6 +94,8 @@ func TestSearchWithLargeAmountOfData(t *testing.T) {
 
 	// create skip list
 	sl := Create(array)
+
+	// check
 	for i := 0; i < n; i++ {
 		x := rd.Int() % n
 
@@ -115,5 +117,89 @@ func checkResult(t *testing.T, x int, ckok, slok bool, nd *node) {
 
 	if ckok && (nd == nil || nd.id != x) {
 		t.Fatalf("get a value that unexpected in array, %d", x)
+	}
+}
+
+func TestInsert(t *testing.T) {
+	array := []int{2, 8, 10, 11, 13, 19, 20, 22, 26, 30}
+	sl := Create(array)
+
+	_, ok := sl.Search(9)
+	if ok {
+		t.Fatalf("get a value that does not exist in array, %d", 9)
+	}
+
+	sl.Insert(9)
+
+	_, ok = sl.Search(9)
+	if !ok {
+		t.Fatalf("search 9 error")
+	}
+}
+
+func TestInsertWithLargeAmountOfData(t *testing.T) {
+	rd = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	check := make(map[int]bool, 0)
+	array := make([]int, 0)
+
+	n := 10000
+	for i := 0; i < n; i++ {
+		x := rd.Int() % (n * 3)
+		if _, ok := check[x]; ok {
+			continue
+		}
+
+		check[x] = true
+		array = append(array, x)
+	}
+
+	// sort
+	for i := 0; i < len(array); i++ {
+		for j := i + 1; j < len(array); j++ {
+			if array[i] > array[j] {
+				array[i], array[j] = array[j], array[i]
+			}
+		}
+	}
+
+	// create skip list
+	sl := Create(array)
+
+	// sl.Print()
+
+	// insert into skip list
+	for i := 0; i < n; i++ {
+		x := rd.Int() % (n * 3)
+		if _, ok := check[x]; ok {
+			continue
+		}
+
+		// fmt.Printf("insert %d\n", x)
+
+		check[x] = true
+		array = append(array, x)
+		sl.Insert(x)
+	}
+
+	// sl.Print()
+
+	// sort
+	for i := 0; i < len(array); i++ {
+		for j := i + 1; j < len(array); j++ {
+			if array[i] > array[j] {
+				array[i], array[j] = array[j], array[i]
+			}
+		}
+	}
+
+	// check
+	for i := 0; i < n; i++ {
+		x := rd.Int() % (n * 3)
+
+		_, ckok := check[x]
+		nd, slok := sl.Search(x)
+
+		checkResult(t, x, ckok, slok, nd)
 	}
 }

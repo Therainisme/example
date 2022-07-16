@@ -47,7 +47,48 @@ func Create(array []int) *SkipList {
 }
 
 func (sl *SkipList) Insert(id int) {
-	// todo
+	currentLevel := len(sl.sentinel.nexts) - 1
+
+	startFrom := make([]*node, len(sl.sentinel.nexts))
+	copy(startFrom, sl.sentinel.nexts)
+
+	nowNode := sl.sentinel
+	for {
+		// fmt.Printf("%v\n", nowNode)
+		if currentLevel == 0 {
+			// continue next
+			for nowNode.nexts[currentLevel] != nil && nowNode.nexts[currentLevel].id <= id {
+				nowNode = nowNode.nexts[currentLevel]
+			}
+
+			startFrom[currentLevel] = nowNode
+			break
+		} else if len(nowNode.nexts)-1 >= currentLevel && nowNode.nexts[currentLevel] != nil && nowNode.nexts[currentLevel].id <= id {
+			nowNode = nowNode.nexts[currentLevel]
+		} else if currentLevel > 0 {
+			startFrom[currentLevel] = nowNode
+			currentLevel--
+		} else {
+			break
+		}
+	}
+
+	newNode := &node{id, nil}
+	newNode.addLevel()
+	newNode.nexts[0] = startFrom[0].nexts[0]
+	startFrom[0].nexts[0] = newNode
+	newNodeLevel := 0
+
+	for newNodeLevel < len(startFrom)-1 && tossCoin() {
+		newNodeLevel++
+		newNode.addLevel()
+		newNode.nexts[newNodeLevel] = startFrom[newNodeLevel].nexts[newNodeLevel]
+		if startFrom[newNodeLevel] != nil {
+			startFrom[newNodeLevel].nexts[newNodeLevel] = newNode
+		} else {
+			sl.sentinel.nexts[newNodeLevel] = newNode
+		}
+	}
 }
 
 func (sl *SkipList) Search(id int) (*node, bool) {
